@@ -1,0 +1,13 @@
+{application, aeon,
+  [
+    {description, "Another Erlang to Object Notation translator"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {modules, []},
+    {applications, [
+        kernel,
+        stdlib
+      ]}
+  ]
+}.
+
