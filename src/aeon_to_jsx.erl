@@ -30,7 +30,9 @@ converted_value(Val, {type, Intrinsic}, _Module) when
 	  Intrinsic =:= float;
 	  Intrinsic =:= boolean;
 	  Intrinsic =:= binary;
-	  Intrinsic =:= atom
+	  Intrinsic =:= atom;
+	  Intrinsic =:= any;
+	  Intrinsic =:= term
 	  ->
 	Val;
 converted_value(Val, {type, string}, _Module) when is_list(Val) ->
