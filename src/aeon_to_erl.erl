@@ -33,6 +33,8 @@ validated_field_value(Val, {type, integer}, _Mod) when is_integer(Val) ->
 	Val;
 validated_field_value(Val, {type, float}, _Mod) when is_float(Val) ->
 	Val;
+validated_field_value(Val, {type, float}, _Mod) when is_integer(Val) ->
+	float(Val);
 validated_field_value(Val, {type, boolean}, _Mod) when is_boolean(Val) ->
 	Val;
 validated_field_value(Val, {type, binary}, _Mod) when is_binary(Val) ->
@@ -43,7 +45,7 @@ validated_field_value(Val, {type, atom}, _Mod) when is_atom(Val) -> % what will 
 	Val;
 validated_field_value(Val, {type, atom}, _Mod) when is_binary(Val) -> % jsx only converts true, false, null to Erlang atoms
 	binary_to_existing_atom(Val, utf8);
-validated_field_value(Val, {type, Type}, Mod) when is_list(Val), is_atom(Type) -> % Val is a proplist to be turned into a type
+validated_field_value(Val, {type, Type}, Mod) when is_atom(Type) ->
 	to_type(Val, Mod, Type);
 validated_field_value(Val, {type, {TMod, Type}}, _Mod) -> % Val is a proplist to be turned into a type
 	to_type(Val, TMod, Type);
