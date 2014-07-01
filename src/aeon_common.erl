@@ -7,8 +7,12 @@
 	]).
 
 field_types(Module, Type) ->
-	{Type, FieldList} = lists:keyfind(Type, 1, Module:'#types'()),
-	FieldList.
+	case lists:keyfind(Type, 1, Module:'#types'()) of
+		{Type, FieldList} ->
+			FieldList;
+		false ->
+			error({no_type, {Module, Type}})
+	end.
 
 -spec first_no_fail(fun((any()) -> any()), [any()]) -> any().
 first_no_fail(_, []) ->
