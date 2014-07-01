@@ -21,7 +21,12 @@ rec_field_convert(BuildRec, _Proplist, _RecordModule, []) ->
 rec_field_convert(BuildRec, Proplist, RecordModule, [{FieldName, FieldType} | FieldTypes]) ->
 	BinName = atom_to_binary(FieldName, utf8),
 	{value, {_, FieldValue}, NewProplist} = lists:keytake(BinName, 1, Proplist),
-	Value = validated_field_value(FieldValue, FieldType, RecordModule),
+	Value = try
+		validated_field_value(FieldValue, FieldType, RecordModule)
+	catch
+		throw:all_failed ->
+			throw({conversion_error, FieldName, FieldType, FieldValue})
+	end,
 	rec_field_convert(set_field(FieldName, Value, RecordModule, BuildRec), NewProplist, RecordModule, FieldTypes).
 
 validated_field_value(Val, {type, integer}, _Mod) when is_integer(Val) ->
@@ -43,10 +48,8 @@ validated_field_value(Val, {type, Type}, Mod) when is_list(Val), is_atom(Type) -
 validated_field_value(Val, {type, {TMod, Type}}, _Mod) -> % Val is a proplist to be turned into a type
 	to_type(Val, TMod, Type);
 validated_field_value(Val, {atom, A}, _Mod) when is_binary(Val) ->
-	AtomVal = binary_to_existing_atom(Val, utf8),
-	if
-		A =:= AtomVal -> A;
-		true -> throw({bad_atom, Val})
+	case binary_to_existing_atom(Val, utf8) of
+		A -> A
 	end;
 validated_field_value(Val, nil, _Mod) when is_list(Val) -> % 'nil' is the typespec []
 	Val;
