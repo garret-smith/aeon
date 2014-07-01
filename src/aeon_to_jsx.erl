@@ -10,12 +10,20 @@ record_to_jsx(Record, Module) ->
 	RecordType = element(1, Record),
 	FieldInfo = aeon_common:field_types(Module, {record, RecordType}),
 	Get = list_to_atom("#get-" ++ atom_to_list(element(1, Record))),
-	[{atom_to_binary(FieldName, utf8), converted_value(Module:Get(FieldName, Record), FieldType, Module)}
+	[{atom_to_binary(FieldName, utf8), catching_convert(Module:Get(FieldName, Record), FieldType, Module)}
 	 || {FieldName, FieldType} <- FieldInfo].
+
+catching_convert(Val, Type, Module) ->
+	try
+		converted_value(Val, Type, Module)
+	catch
+		throw:all_failed ->
+			throw({no_conversion, Val, Type})
+	end.
 
 type_to_jsx(Value, Module, ValType) ->
 	TypeSpec = aeon_common:field_types(Module, {type, ValType}),
-	converted_value(Value, TypeSpec, Module).
+	catching_convert(Value, TypeSpec, Module).
 
 converted_value(Val, {type, Intrinsic}, _Module) when
 	  Intrinsic =:= integer;
