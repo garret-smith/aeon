@@ -24,6 +24,7 @@
           rec_t_t :: little(),
           list_t :: [integer()],
           rec_t :: #baby_boy{},
+          adt :: integer() | null,
           empty_t = #empty{} :: #empty{}
          }).
 
@@ -34,6 +35,7 @@
          }).
 -type little() :: #little_boy{}.
 
+-export_type([pairlist/0]). % not necessary for aeon
 -export_records([empty, baby_boy, big_boy, little_boy]).
 
 monolithic_record_roundtrip_test() ->
@@ -56,6 +58,26 @@ monolithic_record_roundtrip_test() ->
     RoundtripRecord = aeon:to_record(jsx:decode(JSON), ?MODULE, big_boy),
     ?assertMatch(Record, RoundtripRecord).
 
+record_with_null_roundtrip_test() ->
+    Record = #big_boy{
+                int_t = 4,
+                float_t = 1.22234,
+                bool_t = false,
+                pair_t = {foo, bar},
+                rec_t_t = #little_boy{
+                             name = "my name",
+                             id = <<"boy xyz">>
+                            },
+                list_t = [1, 2, 3],
+                adt = null,
+                rec_t = #baby_boy{
+                           birthday = erlang:now()
+                          }
+               },
+
+    JSON = jsx:encode(aeon:record_to_jsx(Record, ?MODULE)),
+    RoundtripRecord = aeon:to_record(jsx:decode(JSON), ?MODULE, big_boy),
+    ?assertMatch(Record, RoundtripRecord).
 
 monolithic_type_roundtrip_test() ->
     T = [{a,b},{c,d},{e,f}],

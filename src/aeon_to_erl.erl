@@ -49,6 +49,8 @@ validated_field_value(Val, {type, Type}, Mod) when is_atom(Type) ->
 	to_type(Val, Mod, Type);
 validated_field_value(Val, {type, {TMod, Type}}, _Mod) -> % Val is a proplist to be turned into a type
 	to_type(Val, TMod, Type);
+validated_field_value(null, {atom, null}, _Mod) -> % jsx converts JSON null to 'null' atom
+	null;
 validated_field_value(Val, {atom, A}, _Mod) when is_binary(Val) ->
 	case binary_to_existing_atom(Val, utf8) of
 		A -> A
