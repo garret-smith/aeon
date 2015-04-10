@@ -52,8 +52,9 @@ validated_field_value(Val, {type, {TMod, Type}}, _Mod) -> % Val is a proplist to
 validated_field_value(null, {atom, null}, _Mod) -> % jsx converts JSON null to 'null' atom
 	null;
 validated_field_value(Val, {atom, A}, _Mod) when is_binary(Val) ->
-	case binary_to_existing_atom(Val, utf8) of
-		A -> A
+	case catch binary_to_existing_atom(Val, utf8) of
+		A -> A;
+		_ -> throw({no_conversion, Val, {atom, A}})
 	end;
 validated_field_value(Val, nil, _Mod) when is_list(Val) -> % 'nil' is the typespec []
 	Val;
@@ -70,7 +71,9 @@ validated_field_value(Val, {union, UTypes}, Mod) ->
 	aeon_common:first_no_fail(Validator, UTypes);
 validated_field_value(Val, {tuple, TTypes}, Mod) when is_list(Val) -> % erlang tuple as json list and vice versa
 	ValidatedList = [validated_field_value(V, T, Mod) || {V,T} <- lists:zip(Val, TTypes)],
-	list_to_tuple(ValidatedList).
+	list_to_tuple(ValidatedList);
+validated_field_value(Val, Type, Mod) ->
+	throw({no_conversion, Val, {Mod, Type}}).
 
 set_field(Field, Value, RecMod, Record) ->
 	RecMod:'#set-'([{Field, Value}], Record).

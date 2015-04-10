@@ -9,9 +9,13 @@
 record_to_jsx(Record, Module) ->
 	RecordType = element(1, Record),
 	FieldInfo = aeon_common:field_types(Module, {record, RecordType}),
-	Get = list_to_atom("#get-" ++ atom_to_list(element(1, Record))),
-	[{atom_to_binary(FieldName, utf8), catching_convert(Module:Get(FieldName, Record), FieldType, Module)}
-	 || {FieldName, FieldType} <- FieldInfo].
+	try
+		Get = list_to_atom("#get-" ++ atom_to_list(element(1, Record))),
+		[{atom_to_binary(FieldName, utf8), catching_convert(Module:Get(FieldName, Record), FieldType, Module)}
+		|| {FieldName, FieldType} <- FieldInfo]
+	catch
+		error:undef -> throw({record_not_exported, {Module, element(1, Record)}})
+	end.
 
 catching_convert(Val, Type, Module) ->
 	try
@@ -53,5 +57,7 @@ converted_value(Val, {record, _Rtype}, Module) when is_tuple(Val) ->
 converted_value(Val, {atom, A}, _Module) when Val =:= A ->
 	Val;
 converted_value(Val, nil, _Module) ->
-	Val.
+	Val;
+converted_value(Val, Type, Module) ->
+	throw({no_conversion, Val, {Module, Type}}).
 
