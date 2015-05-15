@@ -43,8 +43,11 @@ validated_field_value(Val, {type, string}, _Mod) when is_binary(Val) -> % jsx on
 	unicode:characters_to_list(Val);
 validated_field_value(Val, {type, atom}, _Mod) when is_atom(Val) -> % what will this really catch?  JSX only converts true, false, null to atoms
 	Val;
-validated_field_value(Val, {type, atom}, _Mod) when is_binary(Val) -> % jsx only converts true, false, null to Erlang atoms
-	binary_to_existing_atom(Val, utf8);
+validated_field_value(Val, T={type, atom}, _Mod) when is_binary(Val) -> % jsx only converts true, false, null to Erlang atoms
+	case catch binary_to_existing_atom(Val, utf8) of
+		A when is_atom(A) -> A;
+		_ -> throw({no_conversion, Val, T})
+	end;
 validated_field_value(Val, {type, Type}, Mod) when is_atom(Type) ->
 	to_type(Val, Mod, Type);
 validated_field_value(Val, {type, {TMod, Type}}, _Mod) -> % Val is a proplist to be turned into a type

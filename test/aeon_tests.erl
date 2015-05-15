@@ -8,6 +8,7 @@
 
 -type pairlist() :: [a_pair()].
 -type a_pair() :: {atom(), atom()}.
+-type hetero_list() :: [atom() | integer() | binary()].
 
 -record(baby_boy, {
           birthday :: {Mega :: integer(), Secs :: integer(), Milli :: integer()}
@@ -35,7 +36,7 @@
          }).
 -type little() :: #little_boy{}.
 
--export_type([pairlist/0]). % not necessary for aeon
+-export_type([pairlist/0, hetero_list/0]). % not necessary for aeon
 -export_records([empty, baby_boy, big_boy, little_boy]).
 
 monolithic_record_roundtrip_test() ->
@@ -78,6 +79,12 @@ record_with_null_roundtrip_test() ->
     JSON = jsx:encode(aeon:record_to_jsx(Record, ?MODULE)),
     RoundtripRecord = aeon:to_record(jsx:decode(JSON), ?MODULE, big_boy),
     ?assertMatch(Record, RoundtripRecord).
+
+heterogeneous_list_roundtrip_test() ->
+    L = [one, 1, <<"eno">>],
+    JSON = jsx:encode(aeon:type_to_jsx(L, ?MODULE, hetero_list)),
+    RoundtripL = aeon:to_type(jsx:decode(JSON), ?MODULE, hetero_list),
+    ?assertMatch(L, RoundtripL).
 
 monolithic_type_roundtrip_test() ->
     T = [{a,b},{c,d},{e,f}],
