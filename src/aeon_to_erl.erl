@@ -20,14 +20,20 @@ rec_field_convert(BuildRec, _Proplist, _RecordModule, []) ->
 	BuildRec;
 rec_field_convert(BuildRec, Proplist, RecordModule, [{FieldName, FieldType} | FieldTypes]) ->
 	BinName = atom_to_binary(FieldName, utf8),
-	{value, {_, FieldValue}, NewProplist} = lists:keytake(BinName, 1, Proplist),
-	Value = try
-		validated_field_value(FieldValue, FieldType, RecordModule)
-	catch
-		throw:all_failed ->
-			throw({conversion_error, FieldName, FieldType, FieldValue})
-	end,
-	rec_field_convert(set_field(FieldName, Value, RecordModule, BuildRec), NewProplist, RecordModule, FieldTypes).
+	case lists:keytake(BinName, 1, Proplist) of
+		false ->
+			% not a match for this record type,
+			% try the next one in the type spec
+			throw(try_again);
+		{value, {_, FieldValue}, NewProplist} ->
+		Value = try
+			validated_field_value(FieldValue, FieldType, RecordModule)
+		catch
+			throw:all_failed ->
+				throw({conversion_error, FieldName, FieldType, FieldValue})
+		end,
+		rec_field_convert(set_field(FieldName, Value, RecordModule, BuildRec), NewProplist, RecordModule, FieldTypes)
+	end.
 
 validated_field_value(Val, {type, integer}, _Mod) when is_integer(Val) ->
 	Val;
