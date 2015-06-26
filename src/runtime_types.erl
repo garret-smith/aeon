@@ -55,6 +55,8 @@ typename({type, _, Type, Subtypes, []}) when Type =:= union; Type =:= tuple ->
 	{Type, [typename(T) || T <- Subtypes]};
 typename({type, _, TypeName, _}) ->
 	{type, TypeName};
+typename({user_type, _, TypeName, _}) ->
+	{type, TypeName};
 typename({remote_type, _, [{atom, _, Mod}, {atom, _, Type}, _]}) ->
 	{type, {Mod, Type}};
 typename({ann_type, _, [{var, _, _}, T]}) ->
