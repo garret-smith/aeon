@@ -47,25 +47,27 @@ dependency.  **aeon** does not handle JSON directly.
 
 In a module "test.erl", define a 'user' record.
 
-    -module(test).
-    
-    -compile({parse_transform, runtime_types}).
-    -compile({parse_transform, exprecs}).
-    
-    -type privilege() :: login | create | delete | grant.
+```Erlang
+-module(test).
 
-    -record(user, {
-              name :: binary(),
-              age :: integer(),
-              height :: float(),
-              birthday :: {Year :: integer(),
-                           Month :: integer(),
-                           Day :: integer()},
-              privileges :: [privilege()]
-             }).
+-compile({parse_transform, runtime_types}).
+-compile({parse_transform, exprecs}).
 
-    -export_type([privilege/0]).
-    -export_records([user]).
+-type privilege() :: login | create | delete | grant.
+
+-record(user, {
+          name :: binary(),
+          age :: integer(),
+          height :: float(),
+          birthday :: {Year :: integer(),
+                       Month :: integer(),
+                       Day :: integer()},
+          privileges :: [privilege()]
+         }).
+
+-export_type([privilege/0]).
+-export_records([user]).
+```
 
 Breaking this down, here's what's going on:
 
@@ -83,7 +85,7 @@ Breaking this down, here's what's going on:
   aeon will use this type information to convert the JSON into the record, and
   ensure that the record matches the specified types.  If the JSON type can be
   converted into the specified type, it will be.  For example, JSON does not
-  distinguish between integer and float.  JSON does't have atoms either, but
+  distinguish between integer and float.  JSON doesn't have atoms either, but
   aeon will try to convert JSON strings into atoms, as long as the atom already
   exists.  Since we've defined the privilege type, the atoms 'login', 'create',
   'delete' and 'grant' already exist.  If the JSON had a string like "update"
@@ -100,19 +102,23 @@ Now that everything is set up, here's how you could use this to actually do
 something.  Here is how to turn a record into JSON, which could then be sent to
 a browser.
 
-    User = #user{
-              name = <<"Garret Smith">>,
-              age = 34,
-              height = 6.0,
-              birthday = {1982, 06, 29},
-              privileges = [login, create, delete, grant]
-             },
-    Json = jsx:encode(aeon:record_to_jsx(User, test)),
-    io:fwrite("~s~n", [Json]),
+```Erlang
+User = #user{
+          name = <<"Garret Smith">>,
+          age = 34,
+          height = 6.0,
+          birthday = {1982, 06, 29},
+          privileges = [login, create, delete, grant]
+         },
+Json = jsx:encode(aeon:record_to_jsx(User, test)),
+io:fwrite("~s~n", [Json]),
+```
 
 This would print the JSON string:
 
-    {"name":"Garret Smith","age":34,"height":6.0,"birthday":[1982,6,29],"privileges":["login","create","delete","grant"]}
+```JSON
+{"name":"Garret Smith","age":34,"height":6.0,"birthday":[1982,6,29],"privileges":["login","create","delete","grant"]}
+```
 
 How about the other direction?  Validating input is extremely important.  Never
 trust that the data you receive back from a browser.  If it isn't correct, it
@@ -120,8 +126,10 @@ could make your program behave strangley sometime down the road.  To turn some
 JSON back into an Erlang record, asserting that the record matches the specified
 type information:
 
-    User1 = aeon:to_record(jsx:decode(Json), test, user),
-    User = User1,
+```Erlang
+User1 = aeon:to_record(jsx:decode(Json), test, user),
+User = User1,
+```
 
 The record created from the JSON, User1, exactly matches the original User
 record.
