@@ -15,6 +15,10 @@
 	 type_to_jsx/3
 	]).
 
+-opaque optional_field() :: optional_field.
+
+-export_type([optional_field/0]).
+
 to_record(Jsx, Module, RecordType) ->
 	aeon_to_erl:to_record(Jsx, Module, RecordType).
 

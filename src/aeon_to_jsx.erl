@@ -10,9 +10,7 @@ record_to_jsx(Record, Module) ->
 	RecordType = element(1, Record),
 	FieldInfo = aeon_common:field_types(Module, {record, RecordType}),
 	try
-		Get = list_to_atom("#get-" ++ atom_to_list(element(1, Record))),
-		[{atom_to_binary(FieldName, utf8), catching_convert(Module:Get(FieldName, Record), FieldType, Module)}
-		|| {FieldName, FieldType} <- FieldInfo]
+		build_fieldmap(Module, Record, FieldInfo, [])
 	catch
 		error:undef -> throw({record_not_exported, {Module, element(1, Record)}})
 	end.
@@ -60,4 +58,22 @@ converted_value(Val, nil, _Module) ->
 	Val;
 converted_value(Val, Type, Module) ->
 	throw({no_conversion, Val, {Module, Type}}).
+
+build_fieldmap(_Mod, _Rec, [], PropList) ->
+	PropList;
+build_fieldmap(Mod, Rec, [{FieldName, FieldType} | FieldInfo], PropList) ->
+	GetField = list_to_atom("#get-" ++ atom_to_list(element(1, Rec))),
+	Val = catching_convert(Mod:GetField(FieldName, Rec), FieldType, Mod),
+	case {aeon_common:is_optional_field(FieldType), Val} of
+		{true, null} ->
+			build_fieldmap(Mod, Rec, FieldInfo, PropList);
+		{true, undefined} ->
+			build_fieldmap(Mod, Rec, FieldInfo, PropList);
+		{_, _} ->
+			build_fieldmap(Mod,
+				       Rec,
+				       FieldInfo,
+				       [{atom_to_binary(FieldName, utf8),
+					 Val} | PropList])
+	end.
 

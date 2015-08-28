@@ -3,7 +3,8 @@
 
 -export([
 	 field_types/2,
-	 first_no_fail/2
+	 first_no_fail/2,
+	 is_optional_field/1
 	]).
 
 field_types(_Module, {type, Intrinsic}) when
@@ -38,4 +39,11 @@ first_no_fail(F, [A | Args]) ->
 		throw:all_failed -> first_no_fail(F, Args); % first_no_fail can be nested
 		throw:try_again -> first_no_fail(F, Args)
 	end.
+
+is_optional_field({union, UTypes}) ->
+	lists:any(fun is_optional_field/1, UTypes);
+is_optional_field({type, {aeon, optional_field}}) ->
+	true;
+is_optional_field(_) ->
+	false.
 
