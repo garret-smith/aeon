@@ -57,8 +57,10 @@ typename({type, _, TypeName, _}) ->
 	{type, TypeName};
 typename({user_type, _, TypeName, _}) ->
 	{type, TypeName};
-typename({remote_type, _, [{atom, _, Mod}, {atom, _, Type}, _]}) ->
+typename({remote_type, _, [{atom, _, Mod}, {atom, _, Type}, []]}) ->
 	{type, {Mod, Type}};
+typename({remote_type, _, [{atom, _, Mod}, {atom, _, Type}, TypeParam]}) ->
+	{type, {Mod, Type, [typename(T) || T <- TypeParam]}};
 typename({ann_type, _, [{var, _, _}, T]}) ->
 	typename(T);
 typename({A, _, _}) when is_atom(A) ->

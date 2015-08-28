@@ -43,6 +43,8 @@ converted_value(Val, {type, T}, Module) when is_atom(T) ->
 	type_to_jsx(Val, Module, T);
 converted_value(Val, {type, {TMod, T}}, _Module) when is_atom(TMod), is_atom(T) ->
 	type_to_jsx(Val, TMod, T);
+converted_value(Val, {type, {TMod, T, _Params}}, _Module) when is_atom(TMod), is_atom(T) ->
+	type_to_jsx(Val, TMod, T); % is this the right way to handle parameterized types?
 converted_value(Val, {tuple, TTypes}, Module) when is_tuple(Val), size(Val) =:= length(TTypes) ->
 	[converted_value(V,T,Module) || {V,T} <- lists:zip(tuple_to_list(Val), TTypes)];
 converted_value(Val, {list, Ltype}, Module) when is_list(Val) ->
@@ -64,12 +66,10 @@ build_fieldmap(_Mod, _Rec, [], PropList) ->
 build_fieldmap(Mod, Rec, [{FieldName, FieldType} | FieldInfo], PropList) ->
 	GetField = list_to_atom("#get-" ++ atom_to_list(element(1, Rec))),
 	Val = catching_convert(Mod:GetField(FieldName, Rec), FieldType, Mod),
-	case {aeon_common:is_optional_field(FieldType), Val} of
-		{true, null} ->
+	case lists:member(Val, aeon_common:suppress_values(FieldType)) of
+		true ->
 			build_fieldmap(Mod, Rec, FieldInfo, PropList);
-		{true, undefined} ->
-			build_fieldmap(Mod, Rec, FieldInfo, PropList);
-		{_, _} ->
+		false ->
 			build_fieldmap(Mod,
 				       Rec,
 				       FieldInfo,
