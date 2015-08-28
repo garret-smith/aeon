@@ -51,7 +51,7 @@ monolithic_record_roundtrip_test() ->
                             },
                 list_t = [1, 2, 3],
                 rec_t = #baby_boy{
-                           birthday = erlang:now()
+                           birthday = os:timestamp()
                           }
                },
 
@@ -72,7 +72,7 @@ record_with_null_roundtrip_test() ->
                 list_t = [1, 2, 3],
                 adt = null,
                 rec_t = #baby_boy{
-                           birthday = erlang:now()
+                           birthday = os:timestamp()
                           }
                },
 
