@@ -70,6 +70,8 @@ validated_field_value(Val, T={type, atom}, _Mod) when is_binary(Val) -> % jsx on
 	end;
 validated_field_value(Val, {type, Type}, Mod) when is_atom(Type) ->
 	to_type(Val, Mod, Type);
+validated_field_value(Val, {type, {aeon, json_terms}}, _Mod) -> % return the terms as-is, expecting them to be converted later
+	Val;
 validated_field_value(Val, {type, {TMod, Type}}, _Mod) -> % Val is a proplist to be turned into a type
 	to_type(Val, TMod, Type);
 validated_field_value(null, {atom, null}, _Mod) -> % jsx converts JSON null to 'null' atom

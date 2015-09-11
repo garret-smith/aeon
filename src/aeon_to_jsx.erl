@@ -41,6 +41,9 @@ converted_value(Val, {type, string}, _Module) when is_list(Val) ->
 	unicode:characters_to_binary(Val, utf8, utf8);
 converted_value(Val, {type, T}, Module) when is_atom(T) ->
 	type_to_jsx(Val, Module, T);
+converted_value(Val, {type, {aeon, json_terms}}, _Module) ->
+	% Val has already been converted to JSX-compatible erlang terms
+	Val;
 converted_value(Val, {type, {TMod, T}}, _Module) when is_atom(TMod), is_atom(T) ->
 	type_to_jsx(Val, TMod, T);
 converted_value(Val, {type, {TMod, T, _Params}}, _Module) when is_atom(TMod), is_atom(T) ->
