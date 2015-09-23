@@ -37,6 +37,7 @@ first_no_fail(F, [A | Args]) ->
 	catch
 		error:{no_type, T} -> error({no_type, T});
 		throw:{no_conversion, _V, _T} -> first_no_fail(F, Args);
+		throw:{conversion_error, _, _, _} -> first_no_fail(F, Args);
 		throw:all_failed -> first_no_fail(F, Args); % first_no_fail can be nested
 		throw:try_again -> first_no_fail(F, Args)
 	end.
