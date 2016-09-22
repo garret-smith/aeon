@@ -19,34 +19,39 @@ to_type(Jsx, Module, Type) ->
 rec_field_convert(BuildRec, _Proplist, _RecordModule, []) ->
 	BuildRec;
 rec_field_convert(BuildRec, Proplist, RecordModule, [{FieldName, FieldType} | FieldTypes]) ->
-	BinName = atom_to_binary(FieldName, utf8),
-	case lists:keytake(BinName, 1, Proplist) of
+	case aeon_common:is_excluded_field(FieldType) of
+		true ->
+			rec_field_convert(BuildRec, Proplist, RecordModule, FieldTypes);
 		false ->
-			% not a match for this record type,
-			% try the next one in the type spec
-			% unless aeon:optional_field() is in the typespec
-			case aeon_common:is_optional_field(FieldType) of
+			BinName = atom_to_binary(FieldName, utf8),
+			case lists:keytake(BinName, 1, Proplist) of
 				false ->
-					throw(try_again);
-				true ->
+					% not a match for this record type,
+					% try the next one in the type spec
+					% unless aeon:optional_field() is in the typespec
+					case aeon_common:is_optional_field(FieldType) of
+						false ->
+							throw(try_again);
+						true ->
+							rec_field_convert(
+								BuildRec,
+								Proplist,
+								RecordModule,
+								FieldTypes)
+					end;
+				{value, {_, FieldValue}, NewProplist} ->
+					Value = try
+								validated_field_value(FieldValue, FieldType, RecordModule)
+							catch
+								throw:all_failed ->
+									throw({conversion_error, FieldName, FieldType, FieldValue})
+							end,
 					rec_field_convert(
-					  BuildRec,
-					  Proplist,
-					  RecordModule,
-					  FieldTypes)
-			end;
-		{value, {_, FieldValue}, NewProplist} ->
-			Value = try
-					validated_field_value(FieldValue, FieldType, RecordModule)
-				catch
-					throw:all_failed ->
-						throw({conversion_error, FieldName, FieldType, FieldValue})
-				end,
-			rec_field_convert(
-			  set_field(FieldName, Value, RecordModule, BuildRec),
-			  NewProplist,
-			  RecordModule,
-			  FieldTypes)
+						set_field(FieldName, Value, RecordModule, BuildRec),
+						NewProplist,
+						RecordModule,
+						FieldTypes)
+			end
 	end.
 
 validated_field_value(Val, {type, integer}, _Mod) when is_integer(Val) ->

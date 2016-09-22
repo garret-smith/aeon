@@ -16,11 +16,13 @@
 	]).
 
 -opaque optional_field() :: optional_field.
+-opaque excluded_field() :: excluded_field.
 -opaque suppress(T) :: {suppress, T}.
 -opaque json_terms() :: json_terms.
 
 -export_type([
 	      optional_field/0,
+	      excluded_field/0,
 	      suppress/1,
 	      json_terms/0
 	     ]).

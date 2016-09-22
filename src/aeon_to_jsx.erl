@@ -67,16 +67,21 @@ converted_value(Val, Type, Module) ->
 build_fieldmap(_Mod, _Rec, [], PropList) ->
 	PropList;
 build_fieldmap(Mod, Rec, [{FieldName, FieldType} | FieldInfo], PropList) ->
-	GetField = list_to_atom("#get-" ++ atom_to_list(element(1, Rec))),
-	Val = catching_convert(Mod:GetField(FieldName, Rec), FieldType, Mod),
-	case lists:member(Val, aeon_common:suppress_values(FieldType)) of
-		true ->
-			build_fieldmap(Mod, Rec, FieldInfo, PropList);
-		false ->
-			build_fieldmap(Mod,
-				       Rec,
-				       FieldInfo,
-				       [{atom_to_binary(FieldName, utf8),
-					 Val} | PropList])
-	end.
+    case aeon_common:is_excluded_field(FieldType) of
+        true ->
+            build_fieldmap(Mod, Rec, FieldInfo, PropList);
+        false ->
+            GetField = list_to_atom("#get-" ++ atom_to_list(element(1, Rec))),
+            Val = catching_convert(Mod:GetField(FieldName, Rec), FieldType, Mod),
+            case lists:member(Val, aeon_common:suppress_values(FieldType)) of
+                true ->
+                    build_fieldmap(Mod, Rec, FieldInfo, PropList);
+                false ->
+                    build_fieldmap(Mod,
+                        Rec,
+                        FieldInfo,
+                        [{atom_to_binary(FieldName, utf8),
+                            Val} | PropList])
+            end
+    end.
 

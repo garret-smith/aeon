@@ -5,6 +5,7 @@
 	 field_types/2,
 	 first_no_fail/2,
 	 is_optional_field/1,
+	 is_excluded_field/1,
 	 suppress_values/1
 	]).
 
@@ -54,4 +55,11 @@ is_optional_field({union, UTypes}) ->
 is_optional_field({type, {aeon, optional_field}}) ->
 	true;
 is_optional_field(_) ->
+	false.
+
+is_excluded_field({union, UTypes}) ->
+	lists:any(fun is_excluded_field/1, UTypes);
+is_excluded_field({type, {aeon, excluded_field}}) ->
+	true;
+is_excluded_field(_) ->
 	false.
