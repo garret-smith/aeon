@@ -15,9 +15,16 @@
 	 type_to_jsx/3
 	]).
 
+% (JSON -> erlang) The field may not be supplied in the JSON.  This will cause conversion to fail unless this flag is supplied.
 -opaque optional_field() :: optional_field.
--opaque excluded_field() :: excluded_field.
+
+% (erlang -> JSON) when converting a field to JSON, suppress it if the value matches the parameter.
 -opaque suppress(T) :: {suppress, T}.
+
+% (erlang <-> JSON) Ignore the field if supplied in the JSON, never add the record value to the JSON.
+-opaque excluded_field() :: excluded_field.
+
+% (erlang <-> JSON) (->erlang) Assume that the value contains JSX-ready erlang terms.  (->JSON) Leave JSON terms un-translated.
 -opaque json_terms() :: json_terms.
 
 -export_type([
